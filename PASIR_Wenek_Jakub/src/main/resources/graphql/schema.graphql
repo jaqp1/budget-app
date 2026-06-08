@@ -1,0 +1,121 @@
+type Query {
+    # Podstawowe zapytania
+    transactions: [Transaction]
+    userBalance(days: Float): BalanceDTO
+
+    # Zapytania grupowe (Listing 3.14)
+    groups: [Group!]!
+    myGroups: [Group]
+    groupMembers(groupId: ID!): [Membership!]!
+    groupDebts(groupId: ID!): [Debt!]!
+
+    groupBalance(groupId: ID!, startDate: String, endDate: String): [GroupMemberBalance!]!
+}
+
+type Mutation {
+    # Mutacje transakcji osobistych
+    addTransaction(transactionDTO: TransactionInput!): Transaction
+    updateTransaction(id: ID!, transactionDTO: TransactionInput!): Transaction
+    deleteTransaction(id: ID!): Boolean
+
+    # Mutacje grupowe (Listing 3.14)
+    createGroup(groupDTO: GroupInput!): Group!
+    deleteGroup(id: ID!): Boolean
+
+    # Mutacje członkostwa (Listing 3.14)
+    addMember(membershipDTO: MembershipInput!): Membership!
+    removeMember(membershipId: ID!): Boolean!
+
+    # Mutacje długów (Listing 3.14)
+    createDebt(debtDTO: DebtInput!): Debt!
+    deleteDebt(debtId: ID!): Boolean!
+
+    # KLUCZOWA MUTACJA: Transakcje grupowe (Listing 3.14)
+    addGroupTransaction(groupTransactionDTO: GroupTransactionInput!): Boolean
+
+    markDebtAsPaid(debtId: ID!): Debt!
+    confirmDebtPayment(debtId: ID!): Debt!
+}
+
+type Transaction {
+    id: ID!
+    amount: Float!
+    type: String!
+    tags: String
+    notes: String
+    timestamp: String
+}
+
+input TransactionInput {
+    amount: Float!
+    type: String!
+    tags: String
+    notes: String
+}
+
+type Group {
+    id: ID!
+    name: String!
+    ownerId: ID!
+}
+
+input GroupInput {
+    name: String!
+}
+
+# Poprawiony input zgodnie z Listingiem 3.11
+input GroupTransactionInput {
+    groupId: ID!
+    amount: Float!
+    type: String! # "INCOME" lub "EXPENSE"
+    title: String!
+    selectedUserIds: [ID!]
+}
+
+type BalanceDTO {
+    totalIncome: Float!
+    totalExpense: Float!
+    balance: Float!
+}
+
+type User {
+    id: ID!
+    email: String!
+    username: String!
+}
+
+type Membership {
+    id: ID!
+    groupId: ID!
+    userId: ID!
+    userEmail: String!
+}
+
+input MembershipInput {
+    userEmail: String!
+    groupId: ID!
+}
+
+type Debt {
+    id: ID!
+    amount: Float!
+    title: String!
+    debtor: User!
+    creditor: User!
+    group: Group!
+    paidByDebtor: Boolean!
+    confirmedByCreditor: Boolean!
+}
+
+input DebtInput {
+    debtorId: ID!
+    creditorId: ID!
+    groupId: ID!
+    amount: Float!
+    title: String!
+}
+
+type GroupMemberBalance {
+    userId: ID!
+    balance: Float!
+}
