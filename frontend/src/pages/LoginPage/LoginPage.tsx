@@ -15,26 +15,35 @@ const LoginPage: React.FC = () => {
   const [error, setError] = useState<string>('');
 
   const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    try {
-      const response = await authApi.login({ email, password });
-      login(response.data.token);
+  e.preventDefault();
+  setError('');
+
+  try {
+    const response = await authApi.login({ email, password });
+    const token = response.data.token;
+
+    // Walidacja: Sprawdzamy, czy token zawiera tylko bezpieczne znaki (odskażanie danych dla Sonara)
+    if (typeof token === 'string' && /^[a-zA-Z0-9_\-\.]+$/.test(token)) {
+      login(token);
       navigate('/transactions');
-    } catch (error) {
-      if (error instanceof AxiosError) {
-        if (error.response?.data) {
-          setError(typeof error.response.data === 'string' 
-            ? error.response.data 
-            : error.response.data.message || 'Błąd logowania');
-        } else {
-          setError('Wystąpił błąd podczas logowania.');
-        }
-      } else {
-        setError('Wystąpił nieznany błąd podczas logowania.');
-      }
+    } else {
+      setError('Otrzymano nieprawidłowy format tokenu bezpieczeństwa.');
     }
-  };
+    
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      if (error.response?.data) {
+        setError(typeof error.response.data === 'string' 
+          ? error.response.data 
+          : error.response.data.message || 'Błąd logowania');
+      } else {
+        setError('Wystąpił błąd podczas logowania.');
+      }
+    } else {
+      setError('Wystąpił nieznany błąd podczas logowania.');
+    }
+  }
+};
 
   return (
     <div className={styles.container}>
